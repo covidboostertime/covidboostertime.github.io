@@ -10,6 +10,7 @@
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location" onchange="loadCSV()">
+        <option value="" disabled selected>Location</option> <!-- Default placeholder option -->
         <option value="ny_heat.csv" data-start="09-01">New York City</option>
         <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
         <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
@@ -33,7 +34,7 @@
         let csvData = [];
         let generatedHeaders = [];
         const currentYear = new Date().getFullYear();
-        const nextYear = currentYear + 1;
+        const previousYear = currentYear - 1;
 
         // Function to load CSV file based on selected location
         function loadCSV() {
@@ -44,9 +45,9 @@
 
             if (location) {
                 const [startMonth, startDay] = startDate.split('-');
-                const formattedStartDate = `${currentYear}-${startMonth}-${startDay}`;
-                dateInput.min = formattedStartDate; // Set the minimum selectable date for the current year
-                dateInput.max = `${nextYear}-12-31`; // Allow selection up to the end of next year
+                const formattedStartDate = `${previousYear}-${startMonth}-${startDay}`;
+                dateInput.min = formattedStartDate; // Set the minimum selectable date for the previous year
+                dateInput.max = `${currentYear}-12-31`; // Allow selection up to the end of the current year
                 dateInput.disabled = true; // Disable the date input until CSV is loaded
 
                 generateHeaders(startDate); // Generate headers based on the start date
@@ -71,9 +72,9 @@
         function generateHeaders(startDate) {
             generatedHeaders = [];
             const [startMonth, startDay] = startDate.split('-');
-            const startDateObj = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay));
+            const startDateObj = new Date(previousYear, parseInt(startMonth) - 1, parseInt(startDay));
 
-            for (let i = 0; i < 365; i++) { // Assuming CSV data covers one year
+            for (let i = 0; i < 365 * 2; i++) { // Generate headers for two years (prior year and current year)
                 let dateObj = new Date(startDateObj);
                 dateObj.setDate(dateObj.getDate() + i);
                 generatedHeaders.push(dateObj.toISOString().split('T')[0]); // Store dates in YYYY-MM-DD format
@@ -82,20 +83,23 @@
             console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
         }
 
-        // Modified function to find the lowest value by using column indices
+        // Function to find the lowest value by using column indices
         function findLowestValue() {
             const selectedDate = document.getElementById('day').value;
             if (!selectedDate) {
                 return; // Exit if no date is selected
             }
 
-            const locationSelect = document.getElementById('location');
-            const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
-            const [startMonth, startDay] = startDateAttr.split('-');
-            const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
+            const selectedDateObj = new Date(selectedDate);
+            const selectedYear = selectedDateObj.getFullYear();
+            let baseDate;
+            if (selectedYear === previousYear) {
+                baseDate = new Date(`${currentYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of current year
+            } else {
+                baseDate = new Date(`${selectedYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of selected year
+            }
 
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-            const selectedDateObj = new Date(selectedDate);
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
             const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
