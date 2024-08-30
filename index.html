@@ -82,47 +82,47 @@
             console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
         }
 
-        // Function to find the range of dates with the lowest value for the selected date column
-        function findLowestValue() {
-            const selectedDate = document.getElementById('day').value;
-            if (!selectedDate) {
-                return; // Exit if no date is selected
-            }
+        // Modified function to find the lowest value by using column indices
+		function findLowestValue() {
+    		const selectedDate = document.getElementById('day').value;
+    		if (!selectedDate) {
+        		return; // Exit if no date is selected
+   			}
 
-            const selectedYear = new Date(selectedDate).getFullYear();
-            const dateColumnIndex = findDateColumnIndex(selectedDate);
+    	// Calculate the column index based on the selected date
+   	 	const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+    	const selectedDateObj = new Date(selectedDate);
+    	const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
+    	const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-            if (dateColumnIndex === -1) {
-                document.getElementById('result').innerText = 'Datea not found in CSV data.';
-                return;
-            }
+    	if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
+        	document.getElementById('result').innerText = 'Date not found in CSV data.';
+        	return;
+    	}
 
-            let lowestValue = Infinity;
-            let lowestDates = [];
+    	let lowestValue = Infinity;
+    	let lowestDates = [];
 
-            // Loop through the CSV data to find all rows with the lowest value for the selected date column
-            csvData.forEach(row => {
-                const rowIndex = csvData.indexOf(row);
-                const rowDate = generateDateForRow(rowIndex); // Generate the date for each row
-                const value = parseFloat(row[dateColumnIndex]);
-                if (!isNaN(value)) {
-                    if (value < lowestValue) {
-                        lowestValue = value;
-                        lowestDates = [rowDate]; // Reset the list with a new lowest value
-                    } else if (value === lowestValue) {
-                        lowestDates.push(rowDate); // Add to the list if it's the same lowest value
-                    }
-                }
-            });
+    	// Loop through the CSV data to find all rows with the lowest value for the selected date column
+    	csvData.forEach(row => {
+        	const value = parseFloat(row[dateColumnIndex]);
+        	if (!isNaN(value)) {
+            	if (value < lowestValue) {
+                	lowestValue = value;
+                	lowestDates = [rowIndex]; // Reset the list with a new lowest value
+           		} else if (value === lowestValue) {
+                	lowestDates.push(rowIndex); // Add to the list if it's the same lowest value
+           		}
+        	}
+    	});
 
-            // Display the range of dates with the lowest value
-            if (lowestDates.length > 1) {
-                document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
-            } else {
-                document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
-            }
-        }
-
+    	// Display the range of dates with the lowest value
+    	if (lowestDates.length > 1) {
+        	document.getElementById('result').innerText = `Rows with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
+    	} else {
+        	document.getElementById('result').innerText = `Row with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+    	}
+	}
         // Helper function to find the column index of the selected date in the generated headers
         function findDateColumnIndex(selectedDate) {
             return generatedHeaders.indexOf(selectedDate);
