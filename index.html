@@ -9,7 +9,7 @@
 <body>
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
-    <select id="location">
+    <select id="location" onchange="loadCSV()">
         <option value="ny_heat.csv"data-start="2023-09-01">New York City</option>
         <option value="stockholm_heat.csv"data-start="2023-10-01">Stockholm</option>
         <option value="southkorea_heat.csv"data-start="2023-09-01">South Korea</option>
