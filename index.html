@@ -10,26 +10,22 @@
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location">
-        <option value="ny_heat.csv">New York City</option>
-        <option value="stockholm_heat.csv">Stockholm</option>
-        <option value="southkorea_heat.csv">South Korea</option>
-        <option value="edinburgh_heat.csv">Edinburgh</option>
-        <option value="yamagata_heat.csv">Yamagata</option>
-        <option value="nepal_heat.csv">Nepal</option>
-        <option value="guangzhou_heat.csv">Guangzhou</option>
-        <option value="norway_heat.csv">Norway</option>
-        <option value="netherlands_heat.csv">Netherlands</option>
-        <option value="sweden_heat.csv">Gothenburg</option>
-        <option value="israel_heat.csv">Israel</option>
+        <option value="ny_heat.csv"data-start="2023-09-01">New York City</option>
+        <option value="stockholm_heat.csv"data-start="2023-10-01">Stockholm</option>
+        <option value="southkorea_heat.csv"data-start="2023-09-01">South Korea</option>
+        <option value="edinburgh_heat.csv"data-start="2023-10-01">Edinburgh</option>
+        <option value="yamagata_heat.csv"data-start="2023-10-01">Yamagata</option>
+        <option value="nepal_heat.csv"data-start="2023-09-01">Nepal</option>
+        <option value="guangzhou_heat.csv"data-start="2023-10-01">Guangzhou</option>
+        <option value="norway_heat.csv"data-start="2023-10-01">Norway</option>
+        <option value="netherlands_heat.csv"data-start="2023-10-01">Netherlands</option>
+        <option value="sweden_heat.csv"data-start="2023-11-01">Gothenburg</option>
+        <option value="israel_heat.csv"data-start="2023-02-01">Israel</option>
         <!-- Add more locations as needed -->
     </select>
 
-    <label for="date">Date:</label>
-    <select id="date">
-        <!-- Options will be dynamically populated -->
-    </select>
-
-    <button onclick="findLowestValue()">Find Date with Lowest Value</button>
+    <label for="day">Day of the Year:</label>
+    <input type="date" id="day" onchange="findLowestValue()" disabled>
 
     <h2 id="result"></h2>
 
@@ -38,66 +34,61 @@
 
         // Function to load CSV file based on selected location
         function loadCSV() {
-            const location = document.getElementById('location').value;
+            const locationSelect = document.getElementById('location');
+            const location = locationSelect.value;
+            const startDate = locationSelect.options[locationSelect.selectedIndex].dataset.start;
+            const dateInput = document.getElementById('day');
+
             if (location) {
+                dateInput.min = startDate; // Set the minimum selectable date
+                dateInput.disabled = false; // Enable the date input
+                dateInput.value = ""; // Reset date input value
+
                 Papa.parse(location, {
                     download: true,
                     header: true,
                     complete: function(results) {
-                        processCSVData(results.data);
+                        csvData = results.data;
                     }
                 });
             } else {
-                document.getElementById('date').innerHTML = ''; // Clear the date dropdown if no location is selected
-                document.getElementById('result').innerText = ''; // Clear result if no location is selected
-            }
-        }
-
-        // Function to process the CSV data and populate the dropdown menu
-        function processCSVData(data) {
-            const dateSelect = document.getElementById('date');
-            dateSelect.innerHTML = ''; // Clear previous options
-
-            if (data.length > 0) {
-                const headers = Object.keys(data[0]);
-
-                // Populate the dropdown menu with dates from the CSV headers
-                headers.forEach(header => {
-                    if (header !== "") { // Skip empty headers
-                        const option = document.createElement('option');
-                        option.value = header;
-                        option.textContent = header;
-                        dateSelect.appendChild(option);
-                    }
-                });
-
-                // Store the data globally for use in other functions
-                csvData = data;
+                dateInput.disabled = true;
+                dateInput.value = "";
+                document.getElementById('result').innerText = '';
             }
         }
 
         // Function to find the date of the row with the lowest value for the selected date column
         function findLowestValue() {
-            const selectedDate = document.getElementById('date').value;
-
+            const selectedDate = document.getElementById('day').value;
             if (!selectedDate) {
-                alert("Please select a date.");
+                return; // Exit if no date is selected
+            }
+
+            const dateColumnIndex = findDateColumnIndex(selectedDate);
+            if (dateColumnIndex === -1) {
+                document.getElementById('result').innerText = 'Date not found in CSV data.';
                 return;
             }
 
             let lowestValue = Infinity;
             let lowestDate = "";
 
-            // Loop through the CSV data to find the row with the lowest value for the selected date column
             csvData.forEach(row => {
-                const value = parseFloat(row[selectedDate]);
-                if (value < lowestValue) {
+                const value = parseFloat(row[dateColumnIndex]);
+                if (!isNaN(value) && value < lowestValue) {
                     lowestValue = value;
-                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the date
+                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date
                 }
             });
 
             document.getElementById('result').innerText = `Date with lowest value: ${lowestDate}`;
+        }
+
+        // Helper function to find the column index of the selected date in the CSV data
+        function findDateColumnIndex(selectedDate) {
+            const headers = Object.keys(csvData[0]);
+            return headers.indexOf(selectedDate);
         }
     </script>
 </body>
