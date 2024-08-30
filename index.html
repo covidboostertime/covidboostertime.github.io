@@ -84,44 +84,60 @@
 
         // Modified function to find the lowest value by using column indices
 		function findLowestValue() {
-    		const selectedDate = document.getElementById('day').value;
-    		if (!selectedDate) {
-        		return; // Exit if no date is selected
-   			}
+		const selectedDate = document.getElementById('day').value;
+		if (!selectedDate) {
+			return; // Exit if no date is selected
+		}
 
-    	// Calculate the column index based on the selected date
-   	 	const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-    	const selectedDateObj = new Date(selectedDate);
-    	const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-    	const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+		// Debug: Log selected date
+		console.log("Selected Date:", selectedDate);
 
-    	if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-        	document.getElementById('result').innerText = 'Date not found in CSV data.';
-        	return;
-    	}
+		// Calculate the column index based on the selected date
+		const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+		const selectedDateObj = new Date(selectedDate);
+		const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
+		const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-    	let lowestValue = Infinity;
-    	let lowestDates = [];
+		// Debug: Log calculated column index
+		console.log("Calculated Date Column Index:", dateColumnIndex);
 
-    	// Loop through the CSV data to find all rows with the lowest value for the selected date column
-    	csvData.forEach(row => {
-        	const value = parseFloat(row[dateColumnIndex]);
-        	if (!isNaN(value)) {
-            	if (value < lowestValue) {
-                	lowestValue = value;
-                	lowestDates = [rowIndex]; // Reset the list with a new lowest value
-           		} else if (value === lowestValue) {
-                	lowestDates.push(rowIndex); // Add to the list if it's the same lowest value
-           		}
-        	}
-    	});
+		// Check if the column index is valid
+		if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
+			document.getElementById('result').innerText = 'Datey not found in CSV data.';
+			return;
+		}
 
-    	// Display the range of dates with the lowest value
-    	if (lowestDates.length > 1) {
-        	document.getElementById('result').innerText = `Rows with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
-    	} else {
-        	document.getElementById('result').innerText = `Row with the lowest value (${lowestValue}): ${lowestDates[0]}`;
-    	}
+		let lowestValue = Infinity;
+		let lowestDates = [];
+
+		// Debug: Log csvData to check format
+		console.log("CSV Data:", csvData);
+
+		// Loop through the CSV data to find all rows with the lowest value for the selected date column
+		csvData.forEach((row, rowIndex) => {
+			const value = parseFloat(row[dateColumnIndex]);
+
+			// Debug: Log row and value
+			console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
+
+			if (!isNaN(value)) {
+				if (value < lowestValue) {
+					lowestValue = value;
+					lowestDates = [rowIndex]; // Reset the list with a new lowest value
+				} else if (value === lowestValue) {
+					lowestDates.push(rowIndex); // Add to the list if it's the same lowest value
+				}
+			}
+		});
+
+		// Display the range of dates with the lowest value
+		if (lowestDates.length > 1) {
+			document.getElementById('result').innerText = `Rows with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
+		} else if (lowestDates.length === 1) {
+			document.getElementById('result').innerText = `Row with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+		} else {
+			document.getElementById('result').innerText = 'No valid data found for the selected date.';
+		}
 	}
         // Helper function to find the column index of the selected date in the generated headers
         function findDateColumnIndex(selectedDate) {
