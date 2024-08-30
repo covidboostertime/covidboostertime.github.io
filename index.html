@@ -10,17 +10,17 @@
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location" onchange="loadCSV()">
-        <option value="ny_heat.csv"data-start="09-01">New York City</option>
-        <option value="stockholm_heat.csv"data-start="10-01">Stockholm</option>
-        <option value="southkorea_heat.csv"data-start="09-01">South Korea</option>
-        <option value="edinburgh_heat.csv"data-start="10-01">Edinburgh</option>
-        <option value="yamagata_heat.csv"data-start="10-01">Yamagata</option>
-        <option value="nepal_heat.csv"data-start="09-01">Nepal</option>
-        <option value="guangzhou_heat.csv"data-start="10-01">Guangzhou</option>
-        <option value="norway_heat.csv"data-start="10-01">Norway</option>
-        <option value="netherlands_heat.csv"data-start="10-01">Netherlands</option>
-        <option value="sweden_heat.csv"data-start="11-01">Gothenburg</option>
-        <option value="israel_heat.csv"data-start="02-01">Israel</option>
+        <option value="ny_heat.csv" data-start="09-01">New York City</option>
+        <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
+        <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
+        <option value="edinburgh_heat.csv" data-start="10-01">Edinburgh</option>
+        <option value="yamagata_heat.csv" data-start="10-01">Yamagata</option>
+        <option value="nepal_heat.csv" data-start="09-01">Nepal</option>
+        <option value="guangzhou_heat.csv" data-start="10-01">Guangzhou</option>
+        <option value="norway_heat.csv" data-start="10-01">Norway</option>
+        <option value="netherlands_heat.csv" data-start="10-01">Netherlands</option>
+        <option value="sweden_heat.csv" data-start="11-01">Gothenburg</option>
+        <option value="israel_heat.csv" data-start="02-01">Israel</option>
         <!-- Add more locations as needed -->
     </select>
 
@@ -47,8 +47,7 @@
                 const formattedStartDate = `${currentYear}-${startMonth}-${startDay}`;
                 dateInput.min = formattedStartDate; // Set the minimum selectable date for the current year
                 dateInput.max = `${nextYear}-12-31`; // Allow selection up to the end of next year
-                dateInput.disabled = false; // Enable the date input
-                dateInput.value = ""; // Reset date input value
+                dateInput.disabled = true; // Disable the date input until CSV is loaded
 
                 generateHeaders(startDate); // Generate headers based on the start date
 
@@ -58,6 +57,7 @@
                     complete: function(results) {
                         csvData = results.data;
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
+                        dateInput.disabled = false; // Enable the date input once CSV is loaded
                     }
                 });
             } else {
@@ -73,7 +73,7 @@
             const [startMonth, startDay] = startDate.split('-');
             const startDateObj = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay));
 
-            for (let i = 0; i < csvData.length; i++) {
+            for (let i = 0; i < 365; i++) { // Assuming CSV data covers one year
                 let dateObj = new Date(startDateObj);
                 dateObj.setDate(dateObj.getDate() + i);
                 generatedHeaders.push(dateObj.toISOString().split('T')[0]); // Store dates in YYYY-MM-DD format
@@ -83,82 +83,71 @@
         }
 
         // Modified function to find the lowest value by using column indices
-		function findLowestValue() {
-			const selectedDate = document.getElementById('day').value;
-			if (!selectedDate) {
-				return; // Exit if no date is selected
-			}
+        function findLowestValue() {
+            const selectedDate = document.getElementById('day').value;
+            if (!selectedDate) {
+                return; // Exit if no date is selected
+            }
 
-			const locationSelect = document.getElementById('location');
-			const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
-			const [startMonth, startDay] = startDateAttr.split('-');
-			const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
+            const locationSelect = document.getElementById('location');
+            const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
+            const [startMonth, startDay] = startDateAttr.split('-');
+            const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
 
-			const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-			const selectedDateObj = new Date(selectedDate);
-			const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-			const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+            const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+            const selectedDateObj = new Date(selectedDate);
+            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
+            const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-			if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-				document.getElementById('result').innerText = 'Date not found in CSV data.';
-				return;
-			}
+            if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
+                document.getElementById('result').innerText = 'Date not found in CSV data.';
+                return;
+            }
 
-			let lowestValue = Infinity;
-			let lowestRowIndices = [];
+            let lowestValue = Infinity;
+            let lowestRowIndices = [];
 
-			csvData.forEach((row, rowIndex) => {
-				const value = parseFloat(row[dateColumnIndex]);
-				if (!isNaN(value)) {
-					if (value < lowestValue) {
-						lowestValue = value;
-						lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
-					} else if (value === lowestValue) {
-						lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
-					}
-				}
-			});
+            csvData.forEach((row, rowIndex) => {
+                const value = parseFloat(row[dateColumnIndex]);
+                if (!isNaN(value)) {
+                    if (value < lowestValue) {
+                        lowestValue = value;
+                        lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
+                    } else if (value === lowestValue) {
+                        lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
+                    }
+                }
+            });
 
-			// Convert row indices to date strings in readable format
-			const lowestDates = lowestRowIndices.map(rowIndex => {
-				const date = new Date(baseDate);
-				date.setDate(date.getDate() + rowIndex);
-				return formatDateToReadable(date); // Convert to readable format
-			});
+            // Convert row indices to date strings in readable format
+            const lowestDates = lowestRowIndices.map(rowIndex => {
+                const date = new Date(baseDate);
+                date.setDate(date.getDate() + rowIndex);
+                return formatDateToReadable(date); // Convert to readable format
+            });
 
-			if (lowestDates.length > 1) {
-				const firstDate = lowestDates[0];
-				const lastDate = lowestDates[lowestDates.length - 1];
-				document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${firstDate} to ${lastDate}`;
-			} else if (lowestDates.length === 1) {
-				document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
-			} else {
-				document.getElementById('result').innerText = 'No valid data found for the selected date.';
-			}
-		}
-
-		// Corrected function to convert a Date object to a readable date string
-		function formatDateToReadable(date) {
-			const options = { month: 'long', day: 'numeric' };
-			const day = date.getDate();
-
-			// Correct suffix logic
-			const suffix = (day % 10 === 1 && day !== 11) ? 'st' :
-						   (day % 10 === 2 && day !== 12) ? 'nd' :
-						   (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
-
-			return date.toLocaleDateString('en-US', options) + suffix + `, ${date.getFullYear()}`;
-		}
-        // Helper function to find the column index of the selected date in the generated headers
-        function findDateColumnIndex(selectedDate) {
-            return generatedHeaders.indexOf(selectedDate);
+            if (lowestDates.length > 1) {
+                const firstDate = lowestDates[0];
+                const lastDate = lowestDates[lowestDates.length - 1];
+                document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${firstDate} to ${lastDate}`;
+            } else if (lowestDates.length === 1) {
+                document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+            } else {
+                document.getElementById('result').innerText = 'No valid data found for the selected date.';
+            }
         }
 
-        // Helper function to generate the date for each row based on its index
-        function generateDateForRow(rowIndex) {
-            const baseDate = new Date(`${nextYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`);
-            baseDate.setDate(baseDate.getDate() + rowIndex);
-            return baseDate.toISOString().split('T')[0];
+        // Corrected function to convert a Date object to a readable date string
+        function formatDateToReadable(date) {
+            const options = { month: 'long', day: 'numeric' };
+            const day = date.getDate();
+
+            // Correct suffix logic
+            const suffix = (day % 10 === 1 && day !== 11) ? 'st' :
+                           (day % 10 === 2 && day !== 12) ? 'nd' :
+                           (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+
+            return date.toLocaleDateString('en-US', options) + suffix + `, ${date.getFullYear()}`;
         }
     </script>
 </body>
