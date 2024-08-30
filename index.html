@@ -25,7 +25,7 @@
         <!-- Add more locations as needed -->
     </select>
 
-    <label for="day">Day of the Year:</label>
+    <label for="day">Infection date:</label>
     <input type="date" id="day" onchange="findLowestValue()" disabled>
 
     <h2 id="result"></h2>
@@ -138,9 +138,9 @@
             if (lowestDates.length > 1) {
                 const firstDate = lowestDates[0];
                 const lastDate = lowestDates[lowestDates.length - 1];
-                document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${firstDate} to ${lastDate}`;
+                document.getElementById('result').innerText = `You should receive your next booster between ${firstDate} and ${lastDate}`;
             } else if (lowestDates.length === 1) {
-                document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+                document.getElementById('result').innerText = `You should receive your next booster on ${lowestDates[0]}`;
             } else {
                 document.getElementById('result').innerText = 'No valid data found for the selected date.';
             }
