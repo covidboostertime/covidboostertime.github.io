@@ -4,27 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location and Date Selector</title>
-    <!-- Link to Cayman theme CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.6.0/cayman/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <style>
-        /* Custom styles to complement the Cayman theme */
-        body {
-            margin: 20px;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        label, select, input, h2 {
-            display: block;
-            margin-bottom: 15px;
-        }
-    </style>
 </head>
 <body>
-    <h1>Select Location and Infection Date</h1>
+    <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
-    <select id="location" onchange="loadCSV()" class="form-control">
+    <select id="location" onchange="loadCSV()">
         <option value="" disabled selected>Location</option> <!-- Default placeholder option -->
         <option value="ny_heat.csv" data-start="09-01">New York City</option>
         <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
@@ -40,8 +25,8 @@
         <!-- Add more locations as needed -->
     </select>
 
-    <label for="day">Day of the Year:</label>
-    <input type="date" id="day" onchange="findLowestValue()" class="form-control" disabled>
+    <label for="day">Infection date:</label>
+    <input type="date" id="day" onchange="findLowestValue()" disabled>
 
     <h2 id="result"></h2>
 
@@ -153,9 +138,9 @@
             if (lowestDates.length > 1) {
                 const firstDate = lowestDates[0];
                 const lastDate = lowestDates[lowestDates.length - 1];
-                document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${firstDate} to ${lastDate}`;
+                document.getElementById('result').innerText = `You should receive your next booster between ${firstDate} and ${lastDate}`;
             } else if (lowestDates.length === 1) {
-                document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+                document.getElementById('result').innerText = `You should receive your next booster on ${lowestDates[0]}`;
             } else {
                 document.getElementById('result').innerText = 'No valid data found for the selected date.';
             }
