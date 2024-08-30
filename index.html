@@ -84,81 +84,67 @@
 
         // Modified function to find the lowest value by using column indices
 		function findLowestValue() {
-		const selectedDate = document.getElementById('day').value;
-		if (!selectedDate) {
-			return; // Exit if no date is selected
-		}
-
-		// Debug: Log the selected date
-		console.log("Selected Date:", selectedDate);
-
-		const locationSelect = document.getElementById('location');
-		const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
-		const [startMonth, startDay] = startDateAttr.split('-');
-		const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
-
-		// Debug: Log base date
-		console.log("Base Date (one year after data-start):", baseDate);
-
-		// Calculate the column index based on the selected date
-		const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-		const selectedDateObj = new Date(selectedDate);
-		const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-		const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
-
-		// Debug: Log generated headers and calculated column index
-		console.log("Generated Headers:", generatedHeaders);
-		console.log("Calculated Date Column Index:", dateColumnIndex);
-
-		// Check if the column index is valid
-		if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-			document.getElementById('result').innerText = 'Date not found in CSV data.';
-			return;
-		}
-
-		let lowestValue = Infinity;
-		let lowestRowIndices = [];
-
-		// Debug: Log CSV data length and example row
-		console.log("CSV Data Length:", csvData.length);
-		console.log("CSV Data Example Row:", csvData[0]);
-
-		// Loop through the CSV data to find all rows with the lowest value for the selected date column
-		csvData.forEach((row, rowIndex) => {
-			const value = parseFloat(row[dateColumnIndex]);
-
-			// Debug: Log row index and parsed value
-			console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
-
-			if (!isNaN(value)) {
-				if (value < lowestValue) {
-					lowestValue = value;
-					lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
-				} else if (value === lowestValue) {
-					lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
-				}
+			const selectedDate = document.getElementById('day').value;
+			if (!selectedDate) {
+				return; // Exit if no date is selected
 			}
-		});
 
-		// Convert row indices to date strings
-		const lowestDates = lowestRowIndices.map(rowIndex => {
-			const date = new Date(baseDate);
-			date.setDate(date.getDate() + rowIndex);
-			return date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
-		});
+			const locationSelect = document.getElementById('location');
+			const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
+			const [startMonth, startDay] = startDateAttr.split('-');
+			const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
 
-		// Debug: Log the dates with the lowest values
-		console.log("Dates with the Lowest Value:", lowestDates);
+			const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+			const selectedDateObj = new Date(selectedDate);
+			const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
+			const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-		// Display the range of dates with the lowest value
-		if (lowestDates.length > 1) {
-			document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
-		} else if (lowestDates.length === 1) {
-			document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
-		} else {
-			document.getElementById('result').innerText = 'No valid data found for the selected date.';
+			if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
+				document.getElementById('result').innerText = 'Date not found in CSV data.';
+				return;
+			}
+
+			let lowestValue = Infinity;
+			let lowestRowIndices = [];
+
+			csvData.forEach((row, rowIndex) => {
+				const value = parseFloat(row[dateColumnIndex]);
+				if (!isNaN(value)) {
+					if (value < lowestValue) {
+						lowestValue = value;
+						lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
+					} else if (value === lowestValue) {
+						lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
+					}
+				}
+			});
+
+			// Convert row indices to date strings in readable format
+			const lowestDates = lowestRowIndices.map(rowIndex => {
+				const date = new Date(baseDate);
+				date.setDate(date.getDate() + rowIndex);
+				return formatDateToReadable(date); // Convert to readable format
+			});
+
+			// Display the range of dates with the lowest value
+			if (lowestDates.length > 1) {
+				const firstDate = lowestDates[0];
+				const lastDate = lowestDates[lowestDates.length - 1];
+				document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${firstDate} to ${lastDate}`;
+			} else if (lowestDates.length === 1) {
+				document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+			} else {
+				document.getElementById('result').innerText = 'No valid data found for the selected date.';
+			}
 		}
-	}
+
+		// Function to convert a Date object to a readable date string
+		function formatDateToReadable(date) {
+			const options = { month: 'long', day: 'numeric' };
+			const day = date.getDate();
+			const suffix = (day > 3 && day < 21) ? 'th' : ['st', 'nd', 'rd', 'th'][Math.min(day % 10, 4)];
+			return date.toLocaleDateString('en-US', options) + suffix + `, ${date.getFullYear()}`;
+		}
         // Helper function to find the column index of the selected date in the generated headers
         function findDateColumnIndex(selectedDate) {
             return generatedHeaders.indexOf(selectedDate);
