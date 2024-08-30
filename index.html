@@ -89,10 +89,16 @@
 			return; // Exit if no date is selected
 		}
 
+		// Debug: Log the selected date
+		console.log("Selected Date:", selectedDate);
+
 		const locationSelect = document.getElementById('location');
 		const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
 		const [startMonth, startDay] = startDateAttr.split('-');
 		const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
+
+		// Debug: Log base date
+		console.log("Base Date (one year after data-start):", baseDate);
 
 		// Calculate the column index based on the selected date
 		const startDate = new Date(generatedHeaders[0]); // Get the first generated date
@@ -100,6 +106,11 @@
 		const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
 		const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
+		// Debug: Log generated headers and calculated column index
+		console.log("Generated Headers:", generatedHeaders);
+		console.log("Calculated Date Column Index:", dateColumnIndex);
+
+		// Check if the column index is valid
 		if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
 			document.getElementById('result').innerText = 'Date not found in CSV data.';
 			return;
@@ -108,9 +119,17 @@
 		let lowestValue = Infinity;
 		let lowestRowIndices = [];
 
+		// Debug: Log CSV data length and example row
+		console.log("CSV Data Length:", csvData.length);
+		console.log("CSV Data Example Row:", csvData[0]);
+
 		// Loop through the CSV data to find all rows with the lowest value for the selected date column
 		csvData.forEach((row, rowIndex) => {
 			const value = parseFloat(row[dateColumnIndex]);
+
+			// Debug: Log row index and parsed value
+			console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
+
 			if (!isNaN(value)) {
 				if (value < lowestValue) {
 					lowestValue = value;
@@ -127,6 +146,9 @@
 			date.setDate(date.getDate() + rowIndex);
 			return date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
 		});
+
+		// Debug: Log the dates with the lowest values
+		console.log("Dates with the Lowest Value:", lowestDates);
 
 		// Display the range of dates with the lowest value
 		if (lowestDates.length > 1) {
