@@ -89,8 +89,10 @@
 			return; // Exit if no date is selected
 		}
 
-		// Debug: Log selected date
-		console.log("Selected Date:", selectedDate);
+		const locationSelect = document.getElementById('location');
+		const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
+		const [startMonth, startDay] = startDateAttr.split('-');
+		const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
 
 		// Calculate the column index based on the selected date
 		const startDate = new Date(generatedHeaders[0]); // Get the first generated date
@@ -98,45 +100,39 @@
 		const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
 		const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-		// Debug: Log calculated column index and generated headers
-		console.log("Generated Headers:", generatedHeaders);
-		console.log("Calculated Date Column Index:", dateColumnIndex);
-
-		// Check if the column index is valid
 		if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
 			document.getElementById('result').innerText = 'Date not found in CSV data.';
 			return;
 		}
 
 		let lowestValue = Infinity;
-		let lowestDates = [];
-
-		// Debug: Log csvData to check format
-		console.log("CSV Data Length:", csvData.length);
-		console.log("CSV Data Example Row:", csvData[0]);
+		let lowestRowIndices = [];
 
 		// Loop through the CSV data to find all rows with the lowest value for the selected date column
 		csvData.forEach((row, rowIndex) => {
 			const value = parseFloat(row[dateColumnIndex]);
-
-			// Debug: Log row index and parsed value
-			console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
-
 			if (!isNaN(value)) {
 				if (value < lowestValue) {
 					lowestValue = value;
-					lowestDates = [rowIndex]; // Reset the list with a new lowest value
+					lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
 				} else if (value === lowestValue) {
-					lowestDates.push(rowIndex); // Add to the list if it's the same lowest value
+					lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
 				}
 			}
 		});
 
+		// Convert row indices to date strings
+		const lowestDates = lowestRowIndices.map(rowIndex => {
+			const date = new Date(baseDate);
+			date.setDate(date.getDate() + rowIndex);
+			return date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+		});
+
 		// Display the range of dates with the lowest value
 		if (lowestDates.length > 1) {
-			document.getElementById('result').innerText = `Rows with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
+			document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
 		} else if (lowestDates.length === 1) {
-			document.getElementById('result').innerText = `Row with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+			document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
 		} else {
 			document.getElementById('result').innerText = 'No valid data found for the selected date.';
 		}
