@@ -98,12 +98,13 @@
 		const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
 		const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-		// Debug: Log calculated column index
+		// Debug: Log calculated column index and generated headers
+		console.log("Generated Headers:", generatedHeaders);
 		console.log("Calculated Date Column Index:", dateColumnIndex);
 
 		// Check if the column index is valid
 		if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-			document.getElementById('result').innerText = 'Datey not found in CSV data.';
+			document.getElementById('result').innerText = 'Date not found in CSV data.';
 			return;
 		}
 
@@ -111,13 +112,14 @@
 		let lowestDates = [];
 
 		// Debug: Log csvData to check format
-		console.log("CSV Data:", csvData);
+		console.log("CSV Data Length:", csvData.length);
+		console.log("CSV Data Example Row:", csvData[0]);
 
 		// Loop through the CSV data to find all rows with the lowest value for the selected date column
 		csvData.forEach((row, rowIndex) => {
 			const value = parseFloat(row[dateColumnIndex]);
 
-			// Debug: Log row and value
+			// Debug: Log row index and parsed value
 			console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
 
 			if (!isNaN(value)) {
