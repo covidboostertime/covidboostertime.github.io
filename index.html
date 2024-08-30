@@ -1,7 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location and Date Selector</title>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+    <h1>Select Location and Date</h1>
+    <label for="location">Location:</label>
+    <select id="location">
+        <option value="location1">Location 1</option>
+        <option value="location2">Location 2</option>
+        <!-- Add more locations as needed -->
+    </select>
+
+    <label for="day">Day of the Year:</label>
+    <select id="day">
+        <option value="day1">Day 1</option>
+        <option value="day2">Day 2</option>
+        <!-- Add more days as needed -->
+    </select>
+
+    <button onclick="findLowestValue()">Find Lowest Value</button>
+
+    <h2 id="result"></h2>
+
+    <script>
+        // Example data structure to represent the tables
+        const data = {
+            location1: {
+                day1: [10, 5, 8],
+                day2: [7, 2, 6],
+                // Add more days and their corresponding values
+            },
+            location2: {
+                day1: [4, 1, 9],
+                day2: [3, 8, 2],
+                // Add more days and their corresponding values
+            },
+            // Add more locations and their data
+        };
+
+        function findLowestValue() {
+            const location = document.getElementById('location').value;
+            const day = document.getElementById('day').value;
+            const values = data[location][day];
+            const lowestValue = Math.min(...values);
+            document.getElementById('result').innerText = `Lowest value: ${lowestValue}`;
+        }
+    </script>
 </body>
 </html>
