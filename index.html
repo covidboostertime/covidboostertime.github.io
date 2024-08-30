@@ -89,44 +89,26 @@
 				return; // Exit if no date is selected
 			}
 
-			console.log("Selected Date:", selectedDate);
-
 			const locationSelect = document.getElementById('location');
 			const startDateAttr = locationSelect.options[locationSelect.selectedIndex].dataset.start; // "data-start" attribute
 			const [startMonth, startDay] = startDateAttr.split('-');
 			const baseDate = new Date(new Date().getFullYear() + 1, parseInt(startMonth) - 1, parseInt(startDay)); // Base date is one year after "data-start"
 
-			console.log("Base Date (one year after data-start):", baseDate.toISOString().split('T')[0]);
-
-			// Calculate the column index based on the selected date
 			const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-			console.log("Start Date (first generated header):", startDate.toISOString().split('T')[0]);
-	
 			const selectedDateObj = new Date(selectedDate);
 			const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
 			const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-			console.log("Date Difference (days):", dateDiff);
-			console.log("Calculated Date Column Index:", dateColumnIndex);
-
-			// Check if the column index is valid
 			if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
 				document.getElementById('result').innerText = 'Date not found in CSV data.';
-				console.log('Invalid Date Column Index:', dateColumnIndex);
 				return;
 			}
 
 			let lowestValue = Infinity;
 			let lowestRowIndices = [];
 
-			console.log("CSV Data Length:", csvData.length);
-			console.log("CSV Data Example Row:", csvData[0]);
-
-			// Loop through the CSV data to find all rows with the lowest value for the selected date column
 			csvData.forEach((row, rowIndex) => {
 				const value = parseFloat(row[dateColumnIndex]);
-				console.log(`Row ${rowIndex}, Column ${dateColumnIndex} Value:`, value);
-
 				if (!isNaN(value)) {
 					if (value < lowestValue) {
 						lowestValue = value;
@@ -137,13 +119,12 @@
 				}
 			});
 
+			// Convert row indices to date strings in readable format
 			const lowestDates = lowestRowIndices.map(rowIndex => {
 				const date = new Date(baseDate);
 				date.setDate(date.getDate() + rowIndex);
 				return formatDateToReadable(date); // Convert to readable format
 			});
-
-			console.log("Lowest Dates (formatted):", lowestDates);
 
 			if (lowestDates.length > 1) {
 				const firstDate = lowestDates[0];
@@ -156,7 +137,7 @@
 			}
 		}
 
-		// Function to convert a Date object to a readable date string
+		// Corrected function to convert a Date object to a readable date string
 		function formatDateToReadable(date) {
 			const options = { month: 'long', day: 'numeric' };
 			const day = date.getDate();
