@@ -54,6 +54,7 @@
                     header: true,
                     complete: function(results) {
                         csvData = results.data;
+                        console.log("CSV Headers:", Object.keys(csvData[0])); // Debugging: Check CSV headers
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
                     }
                 });
@@ -75,7 +76,7 @@
             const dateColumnIndex = findDateColumnIndex(selectedDate, selectedYear);
 
             if (dateColumnIndex === -1) {
-                document.getElementById('result').innerText = 'Datey not found in CSV data.';
+                document.getElementById('result').innerText = 'Date not found in CSV data.';
                 return;
             }
 
@@ -116,6 +117,9 @@
             } else {
                 formattedDate = new Date(selectedDateObj.setFullYear(nextYear)).toISOString().split('T')[0];
             }
+
+            console.log("Formatted Date:", formattedDate); // Debugging: Check formatted date
+            console.log("Headers:", headers); // Debugging: Check headers again
 
             return headers.indexOf(formattedDate);
         }
