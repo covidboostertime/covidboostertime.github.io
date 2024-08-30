@@ -42,8 +42,8 @@
             const dateInput = document.getElementById('day');
 
             if (location) {
-                const startMonthDay = startDate.split('-');
-                const formattedStartDate = `${currentYear}-${startMonthDay[0]}-${startMonthDay[1]}`;
+                const [startMonth, startDay] = startDate.split('-');
+                const formattedStartDate = `${currentYear}-${startMonth}-${startDay}`;
                 dateInput.min = formattedStartDate; // Set the minimum selectable date for the current year
                 dateInput.max = `${nextYear}-12-31`; // Allow selection up to the end of next year
                 dateInput.disabled = false; // Enable the date input
@@ -54,6 +54,7 @@
                     header: true,
                     complete: function(results) {
                         csvData = results.data;
+                        console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
                     }
                 });
             } else {
@@ -83,10 +84,11 @@
 
             // Loop through the CSV data to find the row with the lowest value for the selected date column
             csvData.forEach(row => {
-                const value = parseFloat(row[dateColumnIndex]);
+                const rowDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date in the next year
+                const value = parseFloat(row[Object.keys(row)[dateColumnIndex]]);
                 if (!isNaN(value) && value < lowestValue) {
                     lowestValue = value;
-                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date in the next year
+                    lowestDate = rowDate;
                 }
             });
 
@@ -97,12 +99,14 @@
         function findDateColumnIndex(selectedDate, selectedYear) {
             const headers = Object.keys(csvData[0]);
             const selectedDateObj = new Date(selectedDate);
+            let formattedDate = '';
 
-            // If selected year is current year, use the date directly
-            // If selected year is next year, convert to next year equivalent
-            const formattedDate = (selectedYear === currentYear) 
-                ? selectedDateObj.toISOString().split('T')[0] 
-                : selectedDateObj.setFullYear(nextYear) && new Date(selectedDateObj).toISOString().split('T')[0];
+            // Adjust the year in the date format for current or next year
+            if (selectedYear === currentYear) {
+                formattedDate = selectedDateObj.toISOString().split('T')[0];
+            } else {
+                formattedDate = new Date(selectedDateObj.setFullYear(nextYear)).toISOString().split('T')[0];
+            }
 
             return headers.indexOf(formattedDate);
         }
