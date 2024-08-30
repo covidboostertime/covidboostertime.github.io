@@ -1,34 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location and Date Selector</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pages-themes/cayman@0.2.0/assets/css/style.scss">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
+
 <body>
-    <h1>Select location and infection date</h1>
-    <label for="location">Location:</label>
-    <select id="location" onchange="loadCSV()">
-        <option value="" disabled selected>Location</option> <!-- Default placeholder option -->
-        <option value="ny_heat.csv" data-start="09-01">New York City</option>
-        <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
-        <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
-        <option value="edinburgh_heat.csv" data-start="10-01">Edinburgh</option>
-        <option value="yamagata_heat.csv" data-start="10-01">Yamagata</option>
-        <option value="nepal_heat.csv" data-start="09-01">Nepal</option>
-        <option value="guangzhou_heat.csv" data-start="10-01">Guangzhou</option>
-        <option value="norway_heat.csv" data-start="10-01">Norway</option>
-        <option value="netherlands_heat.csv" data-start="10-01">Netherlands</option>
-        <option value="sweden_heat.csv" data-start="11-01">Gothenburg</option>
-        <option value="israel_heat.csv" data-start="02-01">Israel</option>
-        <!-- Add more locations as needed -->
-    </select>
+    <header>
+        <div class="container">
+            <h1 class="title">Select location and infection date</h1>
+        </div>
+    </header>
 
-    <label for="day">Infection date:</label>
-    <input type="date" id="day" onchange="findLowestValue()" disabled>
+    <main>
+        <div class="container">
+            <label for="location">Location:</label>
+            <select id="location" onchange="loadCSV()">
+                <option value="" disabled selected>Location</option>
+                <option value="ny_heat.csv" data-start="09-01">New York City</option>
+                <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
+                <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
+                <option value="edinburgh_heat.csv" data-start="10-01">Edinburgh</option>
+                <option value="yamagata_heat.csv" data-start="10-01">Yamagata</option>
+                <option value="nepal_heat.csv" data-start="09-01">Nepal</option>
+                <option value="guangzhou_heat.csv" data-start="10-01">Guangzhou</option>
+                <option value="norway_heat.csv" data-start="10-01">Norway</option>
+                <option value="netherlands_heat.csv" data-start="10-01">Netherlands</option>
+                <option value="sweden_heat.csv" data-start="11-01">Gothenburg</option>
+                <option value="israel_heat.csv" data-start="02-01">Israel</option>
+            </select>
 
-    <h2 id="result"></h2>
+            <label for="day">Infection date:</label>
+            <input type="date" id="day" onchange="findLowestValue()" disabled>
+
+            <h2 id="result"></h2>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Powered by PapaParse and GitHub Pages</p>
+        </div>
+    </footer>
 
     <script>
         let csvData = [];
@@ -36,7 +53,6 @@
         const currentYear = new Date().getFullYear();
         const previousYear = currentYear - 1;
 
-        // Function to load CSV file based on selected location
         function loadCSV() {
             const locationSelect = document.getElementById('location');
             const location = locationSelect.value;
@@ -46,21 +62,20 @@
             if (location) {
                 const [startMonth, startDay] = startDate.split('-');
                 const formattedStartDate = `${previousYear}-${startMonth}-${startDay}`;
-                dateInput.min = formattedStartDate; // Set the minimum selectable date for the previous year
-                dateInput.max = `${currentYear}-12-31`; // Allow selection up to the end of the current year
-                dateInput.disabled = true; // Disable the date input until CSV is loaded
+                dateInput.min = formattedStartDate;
+                dateInput.max = `${currentYear}-12-31`;
+                dateInput.disabled = true;
 
-                generateHeaders(startDate); // Generate headers based on the start date
+                generateHeaders(startDate);
 
                 Papa.parse(location, {
                     download: true,
-                    header: false, // Indicate that the CSV does not have headers
+                    header: false,
                     complete: function(results) {
                         csvData = results.data;
-                        console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
-                        dateInput.disabled = false; // Enable the date input once CSV is loaded
+                        console.log("CSV Data Loaded:", csvData);
+                        dateInput.disabled = false;
 
-                        // Automatically update result if a date has been selected
                         if (dateInput.value) {
                             findLowestValue();
                         }
@@ -73,40 +88,38 @@
             }
         }
 
-        // Function to generate date headers based on the start date
         function generateHeaders(startDate) {
             generatedHeaders = [];
             const [startMonth, startDay] = startDate.split('-');
             const startDateObj = new Date(previousYear, parseInt(startMonth) - 1, parseInt(startDay));
 
-            for (let i = 0; i < 365 * 2; i++) { // Generate headers for two years (prior year and current year)
+            for (let i = 0; i < 365 * 2; i++) {
                 let dateObj = new Date(startDateObj);
                 dateObj.setDate(dateObj.getDate() + i);
-                generatedHeaders.push(dateObj.toISOString().split('T')[0]); // Store dates in YYYY-MM-DD format
+                generatedHeaders.push(dateObj.toISOString().split('T')[0]);
             }
 
-            console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
+            console.log("Generated Headers:", generatedHeaders);
         }
 
-        // Function to find the lowest value by using column indices
         function findLowestValue() {
             const selectedDate = document.getElementById('day').value;
             if (!selectedDate) {
-                return; // Exit if no date is selected
+                return;
             }
 
             const selectedDateObj = new Date(selectedDate);
             const selectedYear = selectedDateObj.getFullYear();
             let baseDate;
             if (selectedYear === previousYear) {
-                baseDate = new Date(`${currentYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of current year
+                baseDate = new Date(`${currentYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`);
             } else {
-                baseDate = new Date(`${selectedYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of selected year
+                baseDate = new Date(`${selectedYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`);
             }
 
-            const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-            const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+            const startDate = new Date(generatedHeaders[0]);
+            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24);
+            const dateColumnIndex = Math.round(dateDiff);
 
             if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
                 document.getElementById('result').innerText = 'Date not found in CSV data.';
@@ -121,18 +134,17 @@
                 if (!isNaN(value)) {
                     if (value < lowestValue) {
                         lowestValue = value;
-                        lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
+                        lowestRowIndices = [rowIndex];
                     } else if (value === lowestValue) {
-                        lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
+                        lowestRowIndices.push(rowIndex);
                     }
                 }
             });
 
-            // Convert row indices to date strings in readable format
             const lowestDates = lowestRowIndices.map(rowIndex => {
                 const date = new Date(baseDate);
                 date.setDate(date.getDate() + rowIndex);
-                return formatDateToReadable(date); // Convert to readable format
+                return formatDateToReadable(date);
             });
 
             if (lowestDates.length > 1) {
@@ -146,12 +158,10 @@
             }
         }
 
-        // Corrected function to convert a Date object to a readable date string
         function formatDateToReadable(date) {
             const options = { month: 'long', day: 'numeric' };
             const day = date.getDate();
 
-            // Correct suffix logic
             const suffix = (day % 10 === 1 && day !== 11) ? 'st' :
                            (day % 10 === 2 && day !== 12) ? 'nd' :
                            (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
@@ -160,4 +170,5 @@
         }
     </script>
 </body>
+
 </html>
