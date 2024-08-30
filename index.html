@@ -10,17 +10,17 @@
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location" onchange="loadCSV()">
-        <option value="ny_heat.csv"data-start="2023-09-01">New York City</option>
-        <option value="stockholm_heat.csv"data-start="2023-10-01">Stockholm</option>
-        <option value="southkorea_heat.csv"data-start="2023-09-01">South Korea</option>
-        <option value="edinburgh_heat.csv"data-start="2023-10-01">Edinburgh</option>
-        <option value="yamagata_heat.csv"data-start="2023-10-01">Yamagata</option>
-        <option value="nepal_heat.csv"data-start="2023-09-01">Nepal</option>
-        <option value="guangzhou_heat.csv"data-start="2023-10-01">Guangzhou</option>
-        <option value="norway_heat.csv"data-start="2023-10-01">Norway</option>
-        <option value="netherlands_heat.csv"data-start="2023-10-01">Netherlands</option>
-        <option value="sweden_heat.csv"data-start="2023-11-01">Gothenburg</option>
-        <option value="israel_heat.csv"data-start="2023-02-01">Israel</option>
+        <option value="ny_heat.csv"data-start="09-01">New York City</option>
+        <option value="stockholm_heat.csv"data-start="10-01">Stockholm</option>
+        <option value="southkorea_heat.csv"data-start="09-01">South Korea</option>
+        <option value="edinburgh_heat.csv"data-start="10-01">Edinburgh</option>
+        <option value="yamagata_heat.csv"data-start="10-01">Yamagata</option>
+        <option value="nepal_heat.csv"data-start="09-01">Nepal</option>
+        <option value="guangzhou_heat.csv"data-start="10-01">Guangzhou</option>
+        <option value="norway_heat.csv"data-start="10-01">Norway</option>
+        <option value="netherlands_heat.csv"data-start="10-01">Netherlands</option>
+        <option value="sweden_heat.csv"data-start="11-01">Gothenburg</option>
+        <option value="israel_heat.csv"data-start="02-01">Israel</option>
         <!-- Add more locations as needed -->
     </select>
 
@@ -31,6 +31,8 @@
 
     <script>
         let csvData = [];
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
 
         // Function to load CSV file based on selected location
         function loadCSV() {
@@ -40,7 +42,10 @@
             const dateInput = document.getElementById('day');
 
             if (location) {
-                dateInput.min = startDate; // Set the minimum selectable date
+                const startMonthDay = startDate.split('-');
+                const formattedStartDate = `${currentYear}-${startMonthDay[0]}-${startMonthDay[1]}`;
+                dateInput.min = formattedStartDate; // Set the minimum selectable date for the current year
+                dateInput.max = `${nextYear}-12-31`; // Allow selection up to the end of next year
                 dateInput.disabled = false; // Enable the date input
                 dateInput.value = ""; // Reset date input value
 
@@ -65,7 +70,9 @@
                 return; // Exit if no date is selected
             }
 
-            const dateColumnIndex = findDateColumnIndex(selectedDate);
+            const selectedYear = new Date(selectedDate).getFullYear();
+            const dateColumnIndex = findDateColumnIndex(selectedDate, selectedYear);
+
             if (dateColumnIndex === -1) {
                 document.getElementById('result').innerText = 'Date not found in CSV data.';
                 return;
@@ -74,11 +81,12 @@
             let lowestValue = Infinity;
             let lowestDate = "";
 
+            // Loop through the CSV data to find the row with the lowest value for the selected date column
             csvData.forEach(row => {
                 const value = parseFloat(row[dateColumnIndex]);
                 if (!isNaN(value) && value < lowestValue) {
                     lowestValue = value;
-                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date
+                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date in the next year
                 }
             });
 
@@ -86,9 +94,17 @@
         }
 
         // Helper function to find the column index of the selected date in the CSV data
-        function findDateColumnIndex(selectedDate) {
+        function findDateColumnIndex(selectedDate, selectedYear) {
             const headers = Object.keys(csvData[0]);
-            return headers.indexOf(selectedDate);
+            const selectedDateObj = new Date(selectedDate);
+
+            // If selected year is current year, use the date directly
+            // If selected year is next year, convert to next year equivalent
+            const formattedDate = (selectedYear === currentYear) 
+                ? selectedDateObj.toISOString().split('T')[0] 
+                : selectedDateObj.setFullYear(nextYear) && new Date(selectedDateObj).toISOString().split('T')[0];
+
+            return headers.indexOf(formattedDate);
         }
     </script>
 </body>
