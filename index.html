@@ -59,6 +59,11 @@
                         csvData = results.data;
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
                         dateInput.disabled = false; // Enable the date input once CSV is loaded
+
+                        // Automatically update result if a date has been selected
+                        if (dateInput.value) {
+                            findLowestValue();
+                        }
                     }
                 });
             } else {
