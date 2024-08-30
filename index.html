@@ -31,6 +31,7 @@
 
     <script>
         let csvData = [];
+        let generatedHeaders = [];
         const currentYear = new Date().getFullYear();
         const nextYear = currentYear + 1;
 
@@ -49,12 +50,13 @@
                 dateInput.disabled = false; // Enable the date input
                 dateInput.value = ""; // Reset date input value
 
+                generateHeaders(startDate); // Generate headers based on the start date
+
                 Papa.parse(location, {
                     download: true,
-                    header: true,
+                    header: false, // Indicate that the CSV does not have headers
                     complete: function(results) {
                         csvData = results.data;
-                        console.log("CSV Headers:", Object.keys(csvData[0])); // Debugging: Check CSV headers
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
                     }
                 });
@@ -65,6 +67,21 @@
             }
         }
 
+        // Function to generate date headers based on the start date
+        function generateHeaders(startDate) {
+            generatedHeaders = [];
+            const [startMonth, startDay] = startDate.split('-');
+            const startDateObj = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay));
+
+            for (let i = 0; i < csvData.length; i++) {
+                let dateObj = new Date(startDateObj);
+                dateObj.setDate(dateObj.getDate() + i);
+                generatedHeaders.push(dateObj.toISOString().split('T')[0]); // Store dates in YYYY-MM-DD format
+            }
+
+            console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
+        }
+
         // Function to find the range of dates with the lowest value for the selected date column
         function findLowestValue() {
             const selectedDate = document.getElementById('day').value;
@@ -73,10 +90,10 @@
             }
 
             const selectedYear = new Date(selectedDate).getFullYear();
-            const dateColumnIndex = findDateColumnIndex(selectedDate, selectedYear);
+            const dateColumnIndex = findDateColumnIndex(selectedDate);
 
             if (dateColumnIndex === -1) {
-                document.getElementById('result').innerText = 'Date not found in CSV data.';
+                document.getElementById('result').innerText = 'Datea not found in CSV data.';
                 return;
             }
 
@@ -85,8 +102,9 @@
 
             // Loop through the CSV data to find all rows with the lowest value for the selected date column
             csvData.forEach(row => {
-                const rowDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date in the next year
-                const value = parseFloat(row[Object.keys(row)[dateColumnIndex]]);
+                const rowIndex = csvData.indexOf(row);
+                const rowDate = generateDateForRow(rowIndex); // Generate the date for each row
+                const value = parseFloat(row[dateColumnIndex]);
                 if (!isNaN(value)) {
                     if (value < lowestValue) {
                         lowestValue = value;
@@ -105,23 +123,16 @@
             }
         }
 
-        // Helper function to find the column index of the selected date in the CSV data
-        function findDateColumnIndex(selectedDate, selectedYear) {
-            const headers = Object.keys(csvData[0]);
-            const selectedDateObj = new Date(selectedDate);
-            let formattedDate = '';
+        // Helper function to find the column index of the selected date in the generated headers
+        function findDateColumnIndex(selectedDate) {
+            return generatedHeaders.indexOf(selectedDate);
+        }
 
-            // Adjust the year in the date format for current or next year
-            if (selectedYear === currentYear) {
-                formattedDate = selectedDateObj.toISOString().split('T')[0];
-            } else {
-                formattedDate = new Date(selectedDateObj.setFullYear(nextYear)).toISOString().split('T')[0];
-            }
-
-            console.log("Formatted Date:", formattedDate); // Debugging: Check formatted date
-            console.log("Headers:", headers); // Debugging: Check headers again
-
-            return headers.indexOf(formattedDate);
+        // Helper function to generate the date for each row based on its index
+        function generateDateForRow(rowIndex) {
+            const baseDate = new Date(`${nextYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`);
+            baseDate.setDate(baseDate.getDate() + rowIndex);
+            return baseDate.toISOString().split('T')[0];
         }
     </script>
 </body>
