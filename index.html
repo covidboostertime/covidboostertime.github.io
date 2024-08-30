@@ -64,7 +64,7 @@
             }
         }
 
-        // Function to find the date of the row with the lowest value for the selected date column
+        // Function to find the range of dates with the lowest value for the selected date column
         function findLowestValue() {
             const selectedDate = document.getElementById('day').value;
             if (!selectedDate) {
@@ -75,24 +75,33 @@
             const dateColumnIndex = findDateColumnIndex(selectedDate, selectedYear);
 
             if (dateColumnIndex === -1) {
-                document.getElementById('result').innerText = 'Date not found in CSV data.';
+                document.getElementById('result').innerText = 'Datey not found in CSV data.';
                 return;
             }
 
             let lowestValue = Infinity;
-            let lowestDate = "";
+            let lowestDates = [];
 
-            // Loop through the CSV data to find the row with the lowest value for the selected date column
+            // Loop through the CSV data to find all rows with the lowest value for the selected date column
             csvData.forEach(row => {
                 const rowDate = row[Object.keys(row)[0]]; // Assuming the first column is the row date in the next year
                 const value = parseFloat(row[Object.keys(row)[dateColumnIndex]]);
-                if (!isNaN(value) && value < lowestValue) {
-                    lowestValue = value;
-                    lowestDate = rowDate;
+                if (!isNaN(value)) {
+                    if (value < lowestValue) {
+                        lowestValue = value;
+                        lowestDates = [rowDate]; // Reset the list with a new lowest value
+                    } else if (value === lowestValue) {
+                        lowestDates.push(rowDate); // Add to the list if it's the same lowest value
+                    }
                 }
             });
 
-            document.getElementById('result').innerText = `Date with lowest value: ${lowestDate}`;
+            // Display the range of dates with the lowest value
+            if (lowestDates.length > 1) {
+                document.getElementById('result').innerText = `Dates with the lowest value (${lowestValue}): ${lowestDates.join(', ')}`;
+            } else {
+                document.getElementById('result').innerText = `Date with the lowest value (${lowestValue}): ${lowestDates[0]}`;
+            }
         }
 
         // Helper function to find the column index of the selected date in the CSV data
