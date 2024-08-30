@@ -4,49 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Location and Date Selector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <h1>Select Location and Date</h1>
+    <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location">
-        <option value="location1">Location 1</option>
-        <option value="location2">Location 2</option>
+        <option value="ny_heat.csv">New York City</option>
+        <option value="stockholm_heat.csv">Stockholm</option>
+        <option value="southkorea_heat.csv">South Korea</option>
+        <option value="edinburgh_heat.csv">Edinburgh</option>
+        <option value="yamagata_heat.csv">Yamagata</option>
+        <option value="nepal_heat.csv">Nepal</option>
+        <option value="guangzhou_heat.csv">Guangzhou</option>
+        <option value="norway_heat.csv">Norway</option>
+        <option value="netherlands_heat.csv">Netherlands</option>
+        <option value="sweden_heat.csv">Gothenburg</option>
+        <option value="israel_heat.csv">Israel</option>
         <!-- Add more locations as needed -->
     </select>
 
-    <label for="day">Day of the Year:</label>
-    <select id="day">
-        <option value="day1">Day 1</option>
-        <option value="day2">Day 2</option>
-        <!-- Add more days as needed -->
+    <label for="date">Date:</label>
+    <select id="date">
+        <!-- Options will be dynamically populated -->
     </select>
 
-    <button onclick="findLowestValue()">Find Lowest Value</button>
+    <button onclick="findLowestValue()">Find Date with Lowest Value</button>
 
     <h2 id="result"></h2>
 
     <script>
-        // Example data structure to represent the tables
-        const data = {
-            location1: {
-                day1: [10, 5, 8],
-                day2: [7, 2, 6],
-                // Add more days and their corresponding values
-            },
-            location2: {
-                day1: [4, 1, 9],
-                day2: [3, 8, 2],
-                // Add more days and their corresponding values
-            },
-            // Add more locations and their data
-        };
+        let csvData = [];
 
-        function findLowestValue() {
+        // Function to load CSV file based on selected location
+        function loadCSV() {
             const location = document.getElementById('location').value;
-            const day = document.getElementById('day').value;
-            const values = data[location][day];
-            const lowestValue = Math.min(...values);
-            document.getElementById('result').innerText = `Lowest value: ${lowestValue}`;
+            if (location) {
+                Papa.parse(location, {
+                    download: true,
+                    header: true,
+                    complete: function(results) {
+                        processCSVData(results.data);
+                    }
+                });
+            } else {
+                document.getElementById('date').innerHTML = ''; // Clear the date dropdown if no location is selected
+                document.getElementById('result').innerText = ''; // Clear result if no location is selected
+            }
+        }
+
+        // Function to process the CSV data and populate the dropdown menu
+        function processCSVData(data) {
+            const dateSelect = document.getElementById('date');
+            dateSelect.innerHTML = ''; // Clear previous options
+
+            if (data.length > 0) {
+                const headers = Object.keys(data[0]);
+
+                // Populate the dropdown menu with dates from the CSV headers
+                headers.forEach(header => {
+                    if (header !== "") { // Skip empty headers
+                        const option = document.createElement('option');
+                        option.value = header;
+                        option.textContent = header;
+                        dateSelect.appendChild(option);
+                    }
+                });
+
+                // Store the data globally for use in other functions
+                csvData = data;
+            }
+        }
+
+        // Function to find the date of the row with the lowest value for the selected date column
+        function findLowestValue() {
+            const selectedDate = document.getElementById('date').value;
+
+            if (!selectedDate) {
+                alert("Please select a date.");
+                return;
+            }
+
+            let lowestValue = Infinity;
+            let lowestDate = "";
+
+            // Loop through the CSV data to find the row with the lowest value for the selected date column
+            csvData.forEach(row => {
+                const value = parseFloat(row[selectedDate]);
+                if (value < lowestValue) {
+                    lowestValue = value;
+                    lowestDate = row[Object.keys(row)[0]]; // Assuming the first column is the date
+                }
+            });
+
+            document.getElementById('result').innerText = `Date with lowest value: ${lowestDate}`;
         }
     </script>
 </body>
