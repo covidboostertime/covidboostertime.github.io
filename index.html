@@ -52,21 +52,26 @@
                 generateHeaders(startDate); // Generate headers based on the start date
 
                 Papa.parse(location, {
-                    download: true,
-                    header: false, // Indicate that the CSV does not have headers
-                    complete: function(results) {
-                        csvData = results.data;
-                        console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
-                        console.log("CSV Data Length:", csvData.length);
-                        console.log("Generated Headers Length:", generatedHeaders.length);
-                        dateInput.disabled = false; // Enable the date input once CSV is loaded
+    				download: true,
+    				header: false, // Indicate that the CSV does not have headers
+    				complete: function(results) {
+        				csvData = results.data;
+        				console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
+        				dateInput.disabled = false; // Enable the date input once CSV is loaded
+        
+        				// Set the maximum selectable date based on CSV data length
+        				const csvDateRange = generatedHeaders.length;
+        					if (csvData[0].length < csvDateRange) {
+            				const maxSelectableDate = new Date(generatedHeaders[csvData[0].length - 1]);
+            				dateInput.max = maxSelectableDate.toISOString().split('T')[0];
+        				}
 
-                        // Automatically update result if a date has been selected
-                        if (dateInput.value) {
-                            findLowestValue();
-                        }
-                    }
-                });
+        				// Automatically update result if a date has been selected
+        				if (dateInput.value) {
+            				findLowestValue();
+        				}
+    				}
+				});
             } else {
                 dateInput.disabled = true;
                 dateInput.value = "";
