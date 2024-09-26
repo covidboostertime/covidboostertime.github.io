@@ -10,7 +10,7 @@
     <h1>Select location and infection date</h1>
     <label for="location">Location:</label>
     <select id="location" onchange="loadCSV()">
-        <option value="" disabled selected>Location</option> <!-- Default placeholder option -->
+        <option value="" disabled selected>Location</option>
         <option value="ny_heat.csv" data-start="09-01">New York City</option>
         <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
         <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
@@ -57,8 +57,6 @@
                     complete: function(results) {
                         csvData = results.data;
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
-                        console.log("CSV Data Length:", csvData.length);
-                        console.log("Generated Headers Length:", generatedHeaders.length);
                         dateInput.disabled = false; // Enable the date input once CSV is loaded
 
                         // Automatically update result if a date has been selected
@@ -100,20 +98,12 @@
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
             const endDate = new Date(generatedHeaders[generatedHeaders.length - 1]); // Get the last generated date
 
-            // Check if the selected date is within the available CSV date range
-            if (selectedDateObj < startDate || selectedDateObj > endDate) {
-                document.getElementById('result').innerText = 'Selected date is outside the available data range in the CSV.';
-                return;
-            }
-
-            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-            const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+            let dateColumnIndex = getColumnIndexForDate(selectedDateObj, startDate);
 
             console.log("Date Selected:", selectedDate);
             console.log("Date Column Index:", dateColumnIndex);
 
-            if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-                console.log("Date Column Index out of bounds:", dateColumnIndex);
+            if (dateColumnIndex === -1) {
                 document.getElementById('result').innerText = 'Date not found in CSV data.';
                 return;
             }
@@ -121,8 +111,10 @@
             let lowestValue = Infinity;
             let lowestRowIndices = [];
 
+            // Wrapping logic: circularly move through CSV rows if date exceeds CSV range
             csvData.forEach((row, rowIndex) => {
-                const value = parseFloat(row[dateColumnIndex]);
+                let wrappedIndex = dateColumnIndex % row.length; // Wrap the index
+                const value = parseFloat(row[wrappedIndex]);
                 if (!isNaN(value)) {
                     if (value < lowestValue) {
                         lowestValue = value;
@@ -149,6 +141,23 @@
             } else {
                 document.getElementById('result').innerText = 'No valid data found for the selected date.';
             }
+        }
+
+        // Helper function to get the correct column index based on selected date and wrapping logic
+        function getColumnIndexForDate(selectedDateObj, startDate) {
+            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate difference in days
+            if (dateDiff < 0) {
+                return -1; // Date is out of bounds, no index found
+            }
+
+            let dateColumnIndex = Math.round(dateDiff);
+
+            // Wrap the index if it exceeds the length of the headers
+            if (dateColumnIndex >= generatedHeaders.length) {
+                dateColumnIndex = dateColumnIndex % generatedHeaders.length;
+            }
+
+            return dateColumnIndex;
         }
 
         // Corrected function to convert a Date object to a readable date string
