@@ -89,7 +89,7 @@
             console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
         }
 
-        // Function to find the lowest value by using column indices, cycling the CSV data when out of range
+        // Function to find the lowest value by using column indices and wrapping CSV values
         function findLowestValue() {
             const selectedDate = document.getElementById('day').value;
             if (!selectedDate) {
@@ -101,10 +101,10 @@
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
             let dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-            // Cycle the CSV data when the dateColumnIndex exceeds the CSV column length
+            // Wrap the column index based on the CSV column count (repeat CSV values)
             const csvColumnCount = csvData[0].length;
             if (dateColumnIndex >= csvColumnCount) {
-                dateColumnIndex = dateColumnIndex % csvColumnCount; // Cycle through the data
+                dateColumnIndex = dateColumnIndex % csvColumnCount; // Wrap the CSV data, but continue date progression
             }
 
             if (dateColumnIndex < 0) {
