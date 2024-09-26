@@ -100,23 +100,19 @@
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
             const endDate = new Date(generatedHeaders[generatedHeaders.length - 1]); // Get the last generated date
 
-            // Check if the selected date is within the available CSV date range
-            if (selectedDateObj < startDate || selectedDateObj > endDate) {
-                document.getElementById('result').innerText = 'Selected date is outside the available data range in the CSV.';
-                return;
+            // Wrap logic: Ensure selected date is considered in a circular manner
+            if (selectedDateObj < startDate) {
+                selectedDateObj.setFullYear(selectedDateObj.getFullYear() + 1);
             }
 
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-            const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+            let dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+
+            // Wrapping logic: Circularly move through CSV columns
+            dateColumnIndex = dateColumnIndex % csvData[0].length;
 
             console.log("Date Selected:", selectedDate);
             console.log("Date Column Index:", dateColumnIndex);
-
-            if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
-                console.log("Date Column Index out of bounds:", dateColumnIndex);
-                document.getElementById('result').innerText = 'Date not found in CSV data.';
-                return;
-            }
 
             let lowestValue = Infinity;
             let lowestRowIndices = [];
