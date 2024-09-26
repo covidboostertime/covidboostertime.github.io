@@ -52,26 +52,21 @@
                 generateHeaders(startDate); // Generate headers based on the start date
 
                 Papa.parse(location, {
-    				download: true,
-    				header: false, // Indicate that the CSV does not have headers
-    				complete: function(results) {
-        				csvData = results.data;
-        				console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
-        				dateInput.disabled = false; // Enable the date input once CSV is loaded
-        
-        				// Set the maximum selectable date based on CSV data length
-        				const csvDateRange = generatedHeaders.length;
-        					if (csvData[0].length < csvDateRange) {
-            				const maxSelectableDate = new Date(generatedHeaders[csvData[0].length - 1]);
-            				dateInput.max = maxSelectableDate.toISOString().split('T')[0];
-        				}
+                    download: true,
+                    header: false, // Indicate that the CSV does not have headers
+                    complete: function(results) {
+                        csvData = results.data;
+                        console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
+                        console.log("CSV Data Length:", csvData.length);
+                        console.log("Generated Headers Length:", generatedHeaders.length);
+                        dateInput.disabled = false; // Enable the date input once CSV is loaded
 
-        				// Automatically update result if a date has been selected
-        				if (dateInput.value) {
-            				findLowestValue();
-        				}
-    				}
-				});
+                        // Automatically update result if a date has been selected
+                        if (dateInput.value) {
+                            findLowestValue();
+                        }
+                    }
+                });
             } else {
                 dateInput.disabled = true;
                 dateInput.value = "";
@@ -94,62 +89,61 @@
             console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
         }
 
-        // Function to find the lowest value by using column indices
+        // Function to find the lowest value by using column indices and allowing date wrapping
         function findLowestValue() {
-			const selectedDate = document.getElementById('day').value;
-			if (!selectedDate) {
-				return; // Exit if no date is selected
-			}
+            const selectedDate = document.getElementById('day').value;
+            if (!selectedDate) {
+                return; // Exit if no date is selected
+            }
 
-			const selectedDateObj = new Date(selectedDate);
-			const startDate = new Date(generatedHeaders[0]); // Get the first generated date
-			const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
-			let dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
+            const selectedDateObj = new Date(selectedDate);
+            const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+            const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
+            let dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
-			// Wrap around the dateColumnIndex using modulus if it exceeds the CSV column length
-			const csvColumnCount = csvData[0].length;
-			if (dateColumnIndex >= csvColumnCount) {
-				dateColumnIndex = dateColumnIndex % csvColumnCount; // Wrap around
-			}
+            // Wrap around the dateColumnIndex using modulus if it exceeds the CSV column length
+            const csvColumnCount = csvData[0].length;
+            if (dateColumnIndex >= csvColumnCount) {
+                dateColumnIndex = dateColumnIndex % csvColumnCount; // Wrap around
+            }
 
-			if (dateColumnIndex < 0) {
-				document.getElementById('result').innerText = 'Selected date is before the start of available data.';
-				return;
-			}
+            if (dateColumnIndex < 0) {
+                document.getElementById('result').innerText = 'Selected date is before the start of available data.';
+                return;
+            }
 
-			let lowestValue = Infinity;
-			let lowestRowIndices = [];
+            let lowestValue = Infinity;
+            let lowestRowIndices = [];
 
-			csvData.forEach((row, rowIndex) => {
-				const value = parseFloat(row[dateColumnIndex]);
-				if (!isNaN(value)) {
-					if (value < lowestValue) {
-						lowestValue = value;
-						lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
-					} else if (value === lowestValue) {
-						lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
-					}
-				}
-			});
+            csvData.forEach((row, rowIndex) => {
+                const value = parseFloat(row[dateColumnIndex]);
+                if (!isNaN(value)) {
+                    if (value < lowestValue) {
+                        lowestValue = value;
+                        lowestRowIndices = [rowIndex]; // Reset the list with a new lowest value
+                    } else if (value === lowestValue) {
+                        lowestRowIndices.push(rowIndex); // Add to the list if it's the same lowest value
+                    }
+                }
+            });
 
-			// Convert row indices to date strings in readable format
-			const lowestDates = lowestRowIndices.map(rowIndex => {
-				const date = new Date(startDate);
-				date.setDate(date.getDate() + rowIndex);
-				return formatDateToReadable(date); // Convert to readable format
-			});
+            // Convert row indices to date strings in readable format
+            const lowestDates = lowestRowIndices.map(rowIndex => {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + rowIndex);
+                return formatDateToReadable(date); // Convert to readable format
+            });
 
-			if (lowestDates.length > 1) {
-				const firstDate = lowestDates[0];
-				const lastDate = lowestDates[lowestDates.length - 1];
-				document.getElementById('result').innerText = `You should receive your next booster between ${firstDate} and ${lastDate}`;
-			} else if (lowestDates.length === 1) {
-				document.getElementById('result').innerText = `You should receive your next booster on ${lowestDates[0]}`;
-			} else {
-				document.getElementById('result').innerText = 'No valid data found for the selected date.';
-			}
-			}
-
+            if (lowestDates.length > 1) {
+                const firstDate = lowestDates[0];
+                const lastDate = lowestDates[lowestDates.length - 1];
+                document.getElementById('result').innerText = `You should receive your next booster between ${firstDate} and ${lastDate}`;
+            } else if (lowestDates.length === 1) {
+                document.getElementById('result').innerText = `You should receive your next booster on ${lowestDates[0]}`;
+            } else {
+                document.getElementById('result').innerText = 'No valid data found for the selected date.';
+            }
+        }
 
         // Corrected function to convert a Date object to a readable date string
         function formatDateToReadable(date) {
