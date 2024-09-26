@@ -98,6 +98,14 @@
 
             const selectedDateObj = new Date(selectedDate);
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+            const endDate = new Date(generatedHeaders[generatedHeaders.length - 1]); // Get the last generated date
+
+            // Check if the selected date is within the available CSV date range
+            if (selectedDateObj < startDate || selectedDateObj > endDate) {
+                document.getElementById('result').innerText = 'Selected date is outside the available data range in the CSV.';
+                return;
+            }
+
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
             const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
