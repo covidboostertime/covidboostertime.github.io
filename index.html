@@ -100,6 +100,11 @@
             // Find the difference in days between the selected date and the start date
             const daysDiff = Math.floor((selectedDateObj - startDate) / (1000 * 60 * 60 * 24));
 
+            if (daysDiff < 0) {
+                document.getElementById('result').innerText = 'Selected date is outside the available data range.';
+                return;
+            }
+
             // Calculate how far in the future we are (for correct date handling)
             let futureDayIndex = daysDiff % csvData[0].length; // Wrap around the CSV data
             let numCycles = Math.floor(daysDiff / csvData[0].length); // Count how many times we wrapped around
@@ -122,9 +127,10 @@
                 }
             });
 
-            // Find the future booster date (based on the CSV row index and cycles)
-            const boosterDate = new Date(startDate);
-            boosterDate.setDate(boosterDate.getDate() + lowestRowIndex + numCycles * csvData.length);
+            // Calculate the future booster date (based on CSV wrapping and cycles)
+            const boosterDate = new Date(selectedDateObj); // Start with the selected date
+            const daysToAdd = lowestRowIndex + numCycles * csvData.length; // Add cycles to calculate future date
+            boosterDate.setDate(boosterDate.getDate() + daysToAdd);
 
             if (lowestRowIndex !== -1) {
                 document.getElementById('result').innerText = `You should receive your next booster on ${formatDateToReadable(boosterDate)}`;
