@@ -96,6 +96,14 @@
             }
 
             const selectedDateObj = new Date(selectedDate);
+            const selectedYear = selectedDateObj.getFullYear();
+            let baseDate;
+            if (selectedYear === previousYear) {
+                baseDate = new Date(`${currentYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of current year
+            } else {
+                baseDate = new Date(`${selectedYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of selected year
+            }
+
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
             const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
@@ -122,7 +130,7 @@
 
             // Convert row indices to date strings in readable format
             const lowestDates = lowestRowIndices.map(rowIndex => {
-                const date = new Date(startDate);
+                const date = new Date(baseDate);
                 date.setDate(date.getDate() + rowIndex);
                 return formatDateToReadable(date); // Convert to readable format
             });
