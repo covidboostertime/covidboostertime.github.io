@@ -32,6 +32,7 @@
     <script>
         let csvData = [];
         let generatedHeaders = [];
+        let startDateObj; // Global start date object
         const currentYear = new Date().getFullYear();
         const previousYear = currentYear - 1;
 
@@ -44,6 +45,7 @@
 
             if (location) {
                 const [startMonth, startDay] = startDate.split('-');
+                startDateObj = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay)); // Start date for current year
                 const formattedStartDate = `${previousYear}-${startMonth}-${startDay}`;
                 dateInput.min = formattedStartDate; // Set the minimum selectable date for the previous year
                 dateInput.max = `${currentYear}-12-31`; // Allow selection up to the end of the current year
@@ -107,11 +109,6 @@
 
             // Calculate how far in the future we are (for correct date handling)
             let futureDayIndex = daysDiff % csvData[0].length; // Wrap around the CSV data
-            let numCycles = Math.floor(daysDiff / csvData[0].length); // Count how many times we wrapped around
-
-            console.log("Days Difference:", daysDiff);
-            console.log("Future Day Index:", futureDayIndex);
-            console.log("Cycles (wrapped times):", numCycles);
 
             let lowestValue = Infinity;
             let lowestRowIndex = -1;
@@ -127,10 +124,14 @@
                 }
             });
 
-            // Calculate the future booster date (based on CSV wrapping and cycles)
-            const boosterDate = new Date(selectedDateObj); // Start with the selected date
-            const daysToAdd = lowestRowIndex + numCycles * csvData.length; // Add cycles to calculate future date
-            boosterDate.setDate(boosterDate.getDate() + daysToAdd);
+            // Calculate the booster date (based on CSV wrapping)
+            const boosterDate = new Date(startDate);
+            boosterDate.setDate(boosterDate.getDate() + lowestRowIndex);
+
+            // If the selected date is past the current year’s start date, add one year to the booster date
+            if (selectedDateObj >= startDateObj) {
+                boosterDate.setFullYear(boosterDate.getFullYear() + 1);
+            }
 
             if (lowestRowIndex !== -1) {
                 document.getElementById('result').innerText = `You should receive your next booster on ${formatDateToReadable(boosterDate)}`;
