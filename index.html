@@ -11,7 +11,7 @@
     <label for="location">Location:</label>
     <select id="location" onchange="loadCSV()">
         <option value="" disabled selected>Location</option>
-        <option value="ny_heat.csv" data-start="09-01">New York City</option>
+        <option value="ny_heat.csv" data-start="09-15">New York City</option>
         <option value="stockholm_heat.csv" data-start="10-01">Stockholm</option>
         <option value="southkorea_heat.csv" data-start="09-01">South Korea</option>
         <option value="edinburgh_heat.csv" data-start="10-01">Edinburgh</option>
@@ -132,12 +132,19 @@
                 return formatDateToReadable(date); // Convert to readable format
             });
 
+            // Ensure the selected booster date is always after the selected date
+            const boosterDate = new Date(startDate);
+            boosterDate.setDate(boosterDate.getDate() + lowestRowIndices[0]);
+            if (boosterDate <= selectedDateObj) {
+                boosterDate.setFullYear(boosterDate.getFullYear() + 1); // Add one year if booster date is not after
+            }
+
             if (lowestDates.length > 1) {
                 const firstDate = lowestDates[0];
                 const lastDate = lowestDates[lowestDates.length - 1];
                 document.getElementById('result').innerText = `You should receive your next booster between ${firstDate} and ${lastDate}`;
             } else if (lowestDates.length === 1) {
-                document.getElementById('result').innerText = `You should receive your next booster on ${lowestDates[0]}`;
+                document.getElementById('result').innerText = `You should receive your next booster on ${formatDateToReadable(boosterDate)}`;
             } else {
                 document.getElementById('result').innerText = 'No valid data found for the selected date.';
             }
