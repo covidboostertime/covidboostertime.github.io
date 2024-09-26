@@ -22,7 +22,6 @@
         <option value="netherlands_heat.csv" data-start="10-01">Netherlands</option>
         <option value="sweden_heat.csv" data-start="11-01">Gothenburg</option>
         <option value="israel_heat.csv" data-start="02-01">Israel</option>
-        <!-- Add more locations as needed -->
     </select>
 
     <label for="day">Infection date:</label>
@@ -58,6 +57,8 @@
                     complete: function(results) {
                         csvData = results.data;
                         console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
+                        console.log("CSV Data Length:", csvData.length);
+                        console.log("Generated Headers Length:", generatedHeaders.length);
                         dateInput.disabled = false; // Enable the date input once CSV is loaded
 
                         // Automatically update result if a date has been selected
@@ -96,19 +97,15 @@
             }
 
             const selectedDateObj = new Date(selectedDate);
-            const selectedYear = selectedDateObj.getFullYear();
-            let baseDate;
-            if (selectedYear === previousYear) {
-                baseDate = new Date(`${currentYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of current year
-            } else {
-                baseDate = new Date(`${selectedYear}-${generatedHeaders[0].split('-')[1]}-${generatedHeaders[0].split('-')[2]}`); // Set baseDate to start of selected year
-            }
-
             const startDate = new Date(generatedHeaders[0]); // Get the first generated date
             const dateDiff = (selectedDateObj - startDate) / (1000 * 60 * 60 * 24); // Calculate the difference in days
             const dateColumnIndex = Math.round(dateDiff); // Round off to get the correct column index
 
+            console.log("Date Selected:", selectedDate);
+            console.log("Date Column Index:", dateColumnIndex);
+
             if (dateColumnIndex < 0 || dateColumnIndex >= csvData[0].length) {
+                console.log("Date Column Index out of bounds:", dateColumnIndex);
                 document.getElementById('result').innerText = 'Date not found in CSV data.';
                 return;
             }
@@ -130,7 +127,7 @@
 
             // Convert row indices to date strings in readable format
             const lowestDates = lowestRowIndices.map(rowIndex => {
-                const date = new Date(baseDate);
+                const date = new Date(startDate);
                 date.setDate(date.getDate() + rowIndex);
                 return formatDateToReadable(date); // Convert to readable format
             });
