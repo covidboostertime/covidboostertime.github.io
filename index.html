@@ -32,7 +32,6 @@
     <script>
         let csvData = [];
         let generatedHeaders = [];
-        let startDateObj; // Global start date object
         const currentYear = new Date().getFullYear();
         const previousYear = currentYear - 1;
 
@@ -45,7 +44,6 @@
 
             if (location) {
                 const [startMonth, startDay] = startDate.split('-');
-                startDateObj = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay)); // Start date for current year
                 const formattedStartDate = `${previousYear}-${startMonth}-${startDay}`;
                 dateInput.min = formattedStartDate; // Set the minimum selectable date for the previous year
                 dateInput.max = `${currentYear}-12-31`; // Allow selection up to the end of the current year
@@ -97,39 +95,40 @@
             }
 
             const selectedDateObj = new Date(selectedDate);
-            const startDate = new Date(generatedHeaders[0]); // Get the first generated date
+            const locationSelect = document.getElementById('location');
+            const startDate = locationSelect.options[locationSelect.selectedIndex].dataset.start;
 
             // Find the difference in days between the selected date and the start date
-            const daysDiff = Math.floor((selectedDateObj - startDate) / (1000 * 60 * 60 * 24));
+            const [startMonth, startDay] = startDate.split('-');
+            const currentYearStartDate = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay));
 
-            if (daysDiff < 0) {
-                document.getElementById('result').innerText = 'Selected date is outside the available data range.';
-                return;
+            let dateColumnIndex = Math.floor((selectedDateObj - currentYearStartDate) / (1000 * 60 * 60 * 24));
+
+            // Wrap around if needed for future dates
+            if (dateColumnIndex < 0) {
+                dateColumnIndex = (csvData[0].length + dateColumnIndex) % csvData[0].length;
+            } else {
+                dateColumnIndex = dateColumnIndex % csvData[0].length;
             }
-
-            // Calculate how far in the future we are (for correct date handling)
-            let futureDayIndex = daysDiff % csvData[0].length; // Wrap around the CSV data
 
             let lowestValue = Infinity;
             let lowestRowIndex = -1;
 
-            // Find the lowest value in the selected wrapped column
+            // Find the lowest value in the selected column
             csvData.forEach((row, rowIndex) => {
-                const value = parseFloat(row[futureDayIndex]);
-                if (!isNaN(value)) {
-                    if (value < lowestValue) {
-                        lowestValue = value;
-                        lowestRowIndex = rowIndex;
-                    }
+                const value = parseFloat(row[dateColumnIndex]);
+                if (!isNaN(value) && value < lowestValue) {
+                    lowestValue = value;
+                    lowestRowIndex = rowIndex;
                 }
             });
 
-            // Calculate the booster date (based on CSV wrapping)
-            const boosterDate = new Date(startDate);
+            // Find the corresponding booster date
+            let boosterDate = new Date(currentYearStartDate);
             boosterDate.setDate(boosterDate.getDate() + lowestRowIndex);
 
-            // If the selected date is past the current year’s start date, add one year to the booster date
-            if (selectedDateObj >= startDateObj) {
+            // If the selected date is past the current year’s start date, add one year to the result
+            if (selectedDateObj > currentYearStartDate) {
                 boosterDate.setFullYear(boosterDate.getFullYear() + 1);
             }
 
