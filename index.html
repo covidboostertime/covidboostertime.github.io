@@ -53,6 +53,129 @@
 
                     <h2 id="result"></h2>
                 </section>
+                <script>
+					let csvData = [];
+					let generatedHeaders = [];
+					const currentYear = new Date().getFullYear();
+					const previousYear = currentYear - 1;
+
+					// Function to load CSV file based on selected location
+					function loadCSV() {
+						const locationSelect = document.getElementById('location');
+						const location = locationSelect.value;
+						const startDate = locationSelect.options[locationSelect.selectedIndex].dataset.start;
+						const dateInput = document.getElementById('day');
+
+						if (location) {
+							const [startMonth, startDay] = startDate.split('-');
+							const formattedStartDate = `${previousYear}-${startMonth}-${startDay}`;
+							dateInput.min = formattedStartDate; // Set the minimum selectable date for the previous year
+							dateInput.max = `${currentYear}-12-31`; // Allow selection up to the end of the current year
+							dateInput.disabled = true; // Disable the date input until CSV is loaded
+
+							generateHeaders(startDate); // Generate headers based on the start date
+
+							Papa.parse(location, {
+								download: true,
+								header: false, // Indicate that the CSV does not have headers
+								complete: function(results) {
+									csvData = results.data;
+									console.log("CSV Data Loaded:", csvData); // Debugging: check CSV data
+									dateInput.disabled = false; // Enable the date input once CSV is loaded
+
+									// Automatically update result if a date has been selected
+									if (dateInput.value) {
+										findLowestValue();
+									}
+								}
+							});
+						} else {
+							dateInput.disabled = true;
+							dateInput.value = "";
+							document.getElementById('result').innerText = '';
+						}
+					}
+
+					// Function to generate date headers based on the start date
+					function generateHeaders(startDate) {
+						generatedHeaders = [];
+						const [startMonth, startDay] = startDate.split('-');
+						const startDateObj = new Date(previousYear, parseInt(startMonth) - 1, parseInt(startDay));
+
+						for (let i = 0; i < 365 * 2; i++) { // Generate headers for two years (prior year and current year)
+							let dateObj = new Date(startDateObj);
+							dateObj.setDate(dateObj.getDate() + i);
+							generatedHeaders.push(dateObj.toISOString().split('T')[0]); // Store dates in YYYY-MM-DD format
+						}
+
+						console.log("Generated Headers:", generatedHeaders); // Debugging: check generated headers
+					}
+
+					// Function to find the lowest value by using column indices
+					function findLowestValue() {
+						const selectedDate = document.getElementById('day').value;
+						if (!selectedDate) {
+							return; // Exit if no date is selected
+						}
+
+						const selectedDateObj = new Date(selectedDate);
+						const locationSelect = document.getElementById('location');
+						const startDate = locationSelect.options[locationSelect.selectedIndex].dataset.start;
+
+						// Find the difference in days between the selected date and the start date
+						const [startMonth, startDay] = startDate.split('-');
+						const currentYearStartDate = new Date(currentYear, parseInt(startMonth) - 1, parseInt(startDay));
+
+						let dateColumnIndex = Math.floor((selectedDateObj - currentYearStartDate) / (1000 * 60 * 60 * 24));
+
+						// Wrap around if needed for future dates
+						if (dateColumnIndex < 0) {
+							dateColumnIndex = (csvData[0].length + dateColumnIndex) % csvData[0].length;
+						} else {
+							dateColumnIndex = dateColumnIndex % csvData[0].length;
+						}
+
+						let lowestValue = Infinity;
+						let lowestRowIndex = -1;
+
+						// Find the lowest value in the selected column
+						csvData.forEach((row, rowIndex) => {
+							const value = parseFloat(row[dateColumnIndex]);
+							if (!isNaN(value) && value < lowestValue) {
+								lowestValue = value;
+								lowestRowIndex = rowIndex;
+							}
+						});
+
+						// Find the corresponding booster date
+						let boosterDate = new Date(currentYearStartDate);
+						boosterDate.setDate(boosterDate.getDate() + lowestRowIndex);
+
+						// If the selected date is past the current year’s start date, add one year to the result
+						if (selectedDateObj > currentYearStartDate) {
+							boosterDate.setFullYear(boosterDate.getFullYear() + 1);
+						}
+
+						if (lowestRowIndex !== -1) {
+							document.getElementById('result').innerText = `You should receive your next booster on ${formatDateToReadable(boosterDate)}`;
+						} else {
+							document.getElementById('result').innerText = 'No valid data found for the selected date.';
+						}
+					}
+
+					// Helper function to convert a Date object to a readable date string
+					function formatDateToReadable(date) {
+						const options = { month: 'long', day: 'numeric' };
+						const day = date.getDate();
+
+						// Correct suffix logic
+						const suffix = (day % 10 === 1 && day !== 11) ? 'st' :
+									   (day % 10 === 2 && day !== 12) ? 'nd' :
+									   (day % 10 === 3 && day !== 13) ? 'rd' : 'th';
+
+						return date.toLocaleDateString('en-US', options) + suffix + `, ${date.getFullYear()}`;
+					}
+				</script>
             </div>
         </div>
 
