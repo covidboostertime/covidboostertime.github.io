@@ -387,7 +387,7 @@ pre code {
 
 @-moz-keyframes spinner-hide {
   0% {
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(88, 89, 91, 0.15);
     z-index: 100001;
     -moz-transform: scale(1) rotate(0deg);
     -webkit-transform: scale(1) rotate(0deg);
@@ -416,7 +416,7 @@ pre code {
 
 @-webkit-keyframes spinner-hide {
   0% {
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(88, 89, 91, 0.15);
     z-index: 100001;
     -moz-transform: scale(1) rotate(0deg);
     -webkit-transform: scale(1) rotate(0deg);
@@ -445,7 +445,7 @@ pre code {
 
 @-ms-keyframes spinner-hide {
   0% {
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(88, 89, 91, 0.15);
     z-index: 100001;
     -moz-transform: scale(1) rotate(0deg);
     -webkit-transform: scale(1) rotate(0deg);
@@ -474,7 +474,7 @@ pre code {
 
 @keyframes spinner-hide {
   0% {
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(88, 89, 91, 0.15);
     z-index: 100001;
     -moz-transform: scale(1) rotate(0deg);
     -webkit-transform: scale(1) rotate(0deg);
