@@ -174,7 +174,7 @@ html {
 
 html,
 body {
-  background: #1c1d26;
+  background: #ffffff;
 }
 
 body.is-preload *,
@@ -194,7 +194,7 @@ body,
 input,
 select,
 textarea {
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(88, 89, 91, 0.75);
   font-family: "Roboto", Helvetica, sans-serif;
   font-size: 15pt;
   font-weight: 100;
